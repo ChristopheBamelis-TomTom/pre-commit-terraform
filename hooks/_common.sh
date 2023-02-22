@@ -315,6 +315,44 @@ function common::terraform_init {
 }
 
 #######################################################################
+# Run terragrunt init command
+# Arguments:
+#   command_name (string) command that will tun after successful init
+#   dir_path (string) PATH to dir relative to git repo root.
+#     Can be used in error logging
+# Globals (init and populate):
+#   TF_INIT_ARGS (array) arguments for `terraform init` command
+# Outputs:
+#   If failed - print out terragrunt init output
+#######################################################################
+function common::terragrunt_init {
+  local -r command_name=$1
+  local -r dir_path=$2
+
+  local exit_code=0
+  local init_output
+
+  # Suppress terragrunt init color
+  if [ "$PRE_COMMIT_COLOR" = "never" ]; then
+    TF_INIT_ARGS+=("-no-color")
+  fi
+
+  if [ ! -d .terragrunt-cache ]; then
+    init_output=$(terragrunt init -backend=false "${TF_INIT_ARGS[@]}" 2>&1)
+    exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+      common::colorify "red" "'terragrunt init' failed, '$command_name' skipped: $dir_path"
+      echo -e "$init_output\n\n"
+    else
+      common::colorify "green" "Command 'terragrunt init' successfully done: $dir_path"
+    fi
+  fi
+
+  return $exit_code
+}
+
+#######################################################################
 # Export provided K/V as environment variables.
 # Arguments:
 #   env_vars (array)  environment variables will be available
