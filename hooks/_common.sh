@@ -338,7 +338,7 @@ function common::terragrunt_init {
   fi
 
   if [ ! -d .terragrunt-cache ]; then
-    init_output=$(terragrunt init -backend=false "${TF_INIT_ARGS[@]}" 2>&1)
+    init_output=$(terragrunt init -reconfigure -lockfile=readonly -backend=false "${TF_INIT_ARGS[@]}" 2>&1)
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then
